@@ -10,22 +10,38 @@
 </head>
 <body>
     <div class="container">
-        <div class="row" style="padding: 60px 30px;">
+        <div class="row text-center" style="padding: 60px 30px;">
             <div class="col-md-12 text-center">
-                <h2>Simplex Maximizador</h2>
+                <h2>Simplex</h2>
             </div>
             <form id="form-simplex" action="." method="POST" style="width: 100%;max-width: 100%;">
-                <div class="row mt-5" style="width: 100%;">                
+                <div class="row mt-5" style="width: 100%;justify-content: center;">     
+                    <div class="form-group col-sm-6">
+                        <label>Quantidade de Variáveis de Decisão</label>
+                        <input name="qntV" type="number" class="form-control" required>
+                    </div>           
                     <div class="form-group col-sm-6">
                         <label>Quantidade de Restrições</label>
                         <input name="qntR" type="number" class="form-control" required>
                     </div>
-                    <div class="form-group col-sm-6">
-                        <label>Quantidade de Variáveis de Decisão</label>
-                        <input name="qntV" type="number" class="form-control" required>
+                    <div class="form-group col-sm-12">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="Minimizar" name="max_min" value="0">
+                            <label class="form-check-label" for="Minimizar">Minimizar</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="max_min" id="Maximizar" value="1">
+                            <label class="form-check-label" for="Maximizar">Maximizar</label>
+                          </div>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" name="checkPass" type="checkbox" id="passtopass" value="1">
+                            <label class="form-check-label" for="passtopass">Passo a Passo</label>
+                          </div>
                     </div>
                     <div class="form-group col-12 text-center mt-4">
-                        <button class="btn btn-dark col-6 col-sm-5" type="submit" id="btn-form-simplex">OK</button>
+                        <button class="btn btn-dark col-6 col-sm-5" type="button" id="btn-form-simplex">OK</button>
                     </div>               
                 </div>
             </form>

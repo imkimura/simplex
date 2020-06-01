@@ -61,7 +61,7 @@ def simplex(matrix, qntV, qntR):
     return newMatrix
 
 def printSimplex(table, qntV, qntR):
-    print('  Base   ', end='   |')
+    # print('  ', end='   |')
 
     for x in range(qntV):
         print(f'    x{x+1}   ', end='   |')
@@ -73,10 +73,10 @@ def printSimplex(table, qntV, qntR):
     print()
 
     for y in range(0,( qntR + 1)):   
-        if y == qntR:
-            print(f'  Lucro  ', end='   |')     
-        else:
-            print(f'    f{(y+1)}   ', end='   |')     
+        # if y == qntR:
+        #     print(f'  Lucro  ', end='   |')     
+        # else:
+        #     print(f'    f{(y+1)}   ', end='   |')     
         
         for x in range(0, ((qntR + qntV) + 1)):
             print(f'  [{table[y][x]:.3f}]', end='   |')

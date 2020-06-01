@@ -1,0 +1,7 @@
+.form-group input.form-control {
+    display: inline;
+    width: 70%;
+}
+.form-group input.form-control.vazio {
+    border: 1px solid red;
+}
