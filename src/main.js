@@ -83,10 +83,8 @@ function makeForm(qntV, qntR, maxMin, step) {
                 </div>  `);
 }
 
-function makeMatrix(qntV, qntR, res, fo) {
-  
-
-
+function makeMatrix(qntV, qntR, res, fo, maxMin) {
+    
     let table = Array(qntR + 1).fill(null).map(() => Array((qntR + qntV) + 1).fill(0));
 
     for(y =0; y < qntR; y++){
@@ -99,9 +97,15 @@ function makeMatrix(qntV, qntR, res, fo) {
                 table[y][j] = 1;
         }            
     }
-            
-    for(i=0; i < qntV; i++) {
-        table[qntR][i] = (fo[i]) * -1;
+    
+    if(maxMin == 1) {
+        for(i=0; i < qntV; i++) {
+            table[qntR][i] = parseFloat(fo[i]) * -1;
+        }               
+    } else  {        
+        for(i=0; i < qntV; i++) {
+            table[qntR][i] = parseFloat(fo[i]);
+        }
     }
 
     for(i =0; i < qntR; i++){
@@ -167,12 +171,13 @@ function simplex(matrix, qntV, qntR, base){
     return [newMatrix, base]
 }
 
-function printSimplex(table, qntV, qntR, base, cont){
+function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb){
     
     rowElems = $(document).find('div.row.mt-5');
+    console.log(cont)
     
-    
-    rowElems.append(`<div class="table-responsive">
+    rowElems.append(`<div class="col-md-12 name-table"><h3>Tabela ${nameTb}</h3></div>
+                    <div class="table-responsive">
                     <table class="table table-striped table-${cont}">
                      <thead class="thead-dark">
                      </thead>
@@ -199,15 +204,19 @@ function printSimplex(table, qntV, qntR, base, cont){
 
     for(y=0; y < ( qntR + 1); y++) {
         $(`table.table-striped.table-${cont} tbody`).append(`<tr></tr>`);
-        if( y == qntR)
-            $(`table.table-striped.table-${cont} tbody tr:nth-child(${y+1})`).append(`<td>Lucro</td>`);  
+        if( y == qntR){
+            if(maxMin == 1)
+                $(`table.table-striped.table-${cont} tbody tr:nth-child(${y+1})`).append(`<td>Z</td>`);  
+            else
+                $(`table.table-striped.table-${cont} tbody tr:nth-child(${y+1})`).append(`<td>-Z</td>`);  
+        }            
         else if (y == 0)
             $(`table.table-striped.table-${cont} tbody tr`).append(`<td>${base[y]}</td>`);     
         else
             $(`table.table-striped.table-${cont} tbody tr:nth-child(${y+1})`).append(`<td>${base[y]}</td>`);     
         
         for(x=0; x < ((qntR + qntV) + 1); x++)
-            $(`table.table-striped.table-${cont} tbody tr:nth-child(${y+1})`).append(`<td>${table[y][x].toFixed(2)}</td>`);   
+            $(`table.table-striped.table-${cont} tbody tr:nth-child(${y+1})`).append(`<td>${(table[y][x]).toFixed(2)}</td>`);   
     }   
 
 }    
@@ -249,22 +258,27 @@ $('#form-simplex').submit(function (e) {
             tableBase.push(`F${i+1}`)
         }
 
-        var table = makeMatrix(qntV, qntR, restrictions, variables)
+        var table = makeMatrix(qntV, qntR, restrictions, variables, maxMin)
         var cont = 0;
 
         rowElems = $(document).find('div.row.mt-5');
         rowElems.text(``);
 
-        printSimplex(table, qntV, qntR, tableBase, cont); 
-
+        printSimplex(table, qntV, qntR, tableBase, cont, maxMin, "Inicial"); 
+        cont++;
         while(verifyParade(table, qntV, qntR)){
-            cont++;
+            
+            if(step){
+                if (cont != 1){                   
+                    printSimplex(table, qntV, qntR, tableBase, cont, maxMin, `${cont-1}`);   
+                }
+            } 
+                                           
             [table, tableBase] = simplex(table, qntV, qntR, tableBase)  
-            if(step)    
-                printSimplex(table, qntV, qntR, tableBase, cont);             
+            cont++;   
         }
-        if(!step)
-            printSimplex(table, qntV, qntR, tableBase, cont);             
+        
+        printSimplex(table, qntV, qntR, tableBase, cont, maxMin, "Final");             
     }
 
 });
