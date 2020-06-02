@@ -19,7 +19,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item active">
-              <a class="nav-link" href="index.html"><h3>Simplex</h3> <span class="sr-only">(current)</span></a>
+              <a class="nav-link" href="index.php"><h3>Simplex</h3> <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="sobre.html"><h3>Sobre</h3></a>

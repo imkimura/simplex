@@ -249,7 +249,7 @@ function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb, vars=[]){
     if(nameTb == "Final")
         rowElems.append(`
         <div class="form-group col-12 text-center mt-4">
-            <a href="index.html" class="btn btn-dark col-6 col-sm-5" type="button">VOLTAR</a>
+            <a href="index.php" class="btn btn-dark col-6 col-sm-5" type="button">VOLTAR</a>
         </div>`)
 
 }    
