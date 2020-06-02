@@ -1,7 +1,31 @@
+h1, h2 , h3 , h4 , h5 {
+    font-family: 'Chelsea Market', 'Tenali Ramakrishna', sans-serif;
+}
+p, label, span, table, button, input {
+    font-family: 'Raleway', sans-serif;
+}
+
+
 .form-group input.form-control {
     display: inline;
     width: 70%;
 }
 .form-group input.form-control.vazio {
     border: 1px solid red;
+}
+.navbar-dark .navbar-nav .active>.nav-link, .navbar-dark .navbar-nav .nav-link.active, .navbar-dark .navbar-nav .nav-link.show, .navbar-dark .navbar-nav .show>.nav-link{
+    color: #0075ff;
+}
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(69, 154, 255, 0.53);
+}
+a {
+    color: #7ebcff;    
+}
+a:hover {
+    text-decoration: none;
+    color: #54a4fa;    
+}
+.name-table {
+    color: #0052f2;
 }
