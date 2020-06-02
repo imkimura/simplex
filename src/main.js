@@ -126,6 +126,7 @@ function verifyParade(matrix, qntV, qntR){
 function simplex(matrix, qntV, qntR, base){
 
     div = [];
+    vars = [];
     
     var min = matrix[qntR].map(Number).reduce(function(a, b) {
         return Math.min(a, b);
@@ -135,7 +136,9 @@ function simplex(matrix, qntV, qntR, base){
         if( matrix[qntR][i] == min)
             enterLine = i;
     }
-    
+
+    vars.push('X'+(enterLine+1))
+
     for(i =0; i < qntR; i++){
         try{
             div.push(matrix[i][qntR+qntV] / matrix[i][enterLine]);
@@ -151,6 +154,7 @@ function simplex(matrix, qntV, qntR, base){
             outLine = i;
         }
     }  
+    vars.push(base[outLine])
     
     base[outLine] = 'X'+ (enterLine+1) 
     
@@ -167,14 +171,14 @@ function simplex(matrix, qntV, qntR, base){
                 newMatrix[i][j] = newMatrix[outLine][j] * (valorDiv * -1) + matrix[i][j];
         }          
     }        
-
-    return [newMatrix, base]
+    console.log(vars)
+    return [newMatrix, base, vars]
 }
 
-function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb){
+function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb, vars=[]){
     
     rowElems = $(document).find('div.row.mt-5');
-    console.log(cont)
+    console.log(vars.length)
     
     rowElems.append(`<div class="col-md-12 name-table"><h3>Tabela ${nameTb}</h3></div>
                     <div class="table-responsive">
@@ -184,7 +188,31 @@ function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb){
                     <tbody>
                     </tbody>
                     </table>
-                    </div>`);
+                    </div>
+                    <hr/>`);
+
+
+    if(typeof vars !== 'undefined' && vars.length > 0) {       
+        rowElems.append(`<p> Entra <b>${vars[0]}</b> e Sai <b>${vars[1]}</b></p></br>`)        
+    }
+
+    if(nameTb == "Final")
+        var auxS = '<p> Solução Final::  ';
+    else if(nameTb == "Inicial")
+        var auxS = '<p> Solução Inicial::  ';
+    else 
+        var auxS = '<p>  ';
+    
+    for(i =0; i < qntR; i++){
+        auxS += `| <b>${base[i]}</b> = ${table[i][qntR+qntV].toFixed(2)} `
+    }
+
+    if(maxMin == 1)
+        auxS += `| <b>Z</b> = ${table[qntR][qntR+qntV].toFixed(2)} | </p>`
+    else
+        auxS += `| <b>Z</b> = ${(table[qntR][qntR+qntV].toFixed(2)) * -1} | </p>`
+    
+    rowElems.append(auxS)
 
     $(`table.table-striped.table-${cont} thead`).append(`
                      <tr>
@@ -217,7 +245,12 @@ function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb){
         
         for(x=0; x < ((qntR + qntV) + 1); x++)
             $(`table.table-striped.table-${cont} tbody tr:nth-child(${y+1})`).append(`<td>${(table[y][x]).toFixed(2)}</td>`);   
-    }   
+    }
+    if(nameTb == "Final")
+        rowElems.append(`
+        <div class="form-group col-12 text-center mt-4">
+            <a href="index.html" class="btn btn-dark col-6 col-sm-5" type="button">VOLTAR</a>
+        </div>`)
 
 }    
         
@@ -264,21 +297,21 @@ $('#form-simplex').submit(function (e) {
         rowElems = $(document).find('div.row.mt-5');
         rowElems.text(``);
 
-        printSimplex(table, qntV, qntR, tableBase, cont, maxMin, "Inicial"); 
+        printSimplex(table, qntV, qntR, tableBase, cont, maxMin, "Inicial", vars=[]); 
         cont++;
         while(verifyParade(table, qntV, qntR)){
             
             if(step){
                 if (cont != 1){                   
-                    printSimplex(table, qntV, qntR, tableBase, cont, maxMin, `${cont-1}`);   
+                    printSimplex(table, qntV, qntR, tableBase, cont, maxMin, `${cont-1}`, vars);   
                 }
             } 
                                            
-            [table, tableBase] = simplex(table, qntV, qntR, tableBase)  
+            [table, tableBase, vars] = simplex(table, qntV, qntR, tableBase)  
             cont++;   
         }
         
-        printSimplex(table, qntV, qntR, tableBase, cont, maxMin, "Final");             
+        printSimplex(table, qntV, qntR, tableBase, cont, maxMin, "Final", vars);             
     }
 
 });
