@@ -85,37 +85,74 @@ function makeForm(qntV, qntR, maxMin, step) {
 
 function makeMatrix(qntV, qntR, res, fo, maxMin) {
     
-    let table = Array(qntR + 1).fill(null).map(() => Array((qntR + qntV) + 1).fill(0));
+    matrix = Array(qntR + 1).fill(null).map(() => Array((qntR + qntV) + 1).fill(0));
 
     for(y =0; y < qntR; y++){
         for(x=0; x < qntV; x++){
-            table[y][x] = parseFloat(res[y][x].replace(',', '.'));
+            matrix[y][x] = parseFloat(res[y][x].replace(',', '.'));
         }
 
         for(j=qntV; j < (qntV+qntR); j++){
             if((j-qntV) == y)
-                table[y][j] = 1;
+                matrix[y][j] = 1;
         }            
     }
     
     if(maxMin == 1) {
         for(i=0; i < qntV; i++) {
-            table[qntR][i] = parseFloat(fo[i]) * -1;
+            matrix[qntR][i] = parseFloat(fo[i]) * -1;
         }               
     } else  {        
         for(i=0; i < qntV; i++) {
-            table[qntR][i] = parseFloat(fo[i]);
+            matrix[qntR][i] = parseFloat(fo[i]);
         }
     }
 
     for(i =0; i < qntR; i++){
-        table[i][qntR + qntV] = parseFloat(res[i][qntV].replace(',', '.'));
+        matrix[i][qntR + qntV] = parseFloat(res[i][qntV].replace(',', '.'));
     }
- 
-    return table
-}
 
-function verifyParade(matrix, qntV, qntR){
+    console.log(matrix, " Matrix");
+    return matrix
+}
+function analyseSensibility(qntV, qntR, oldtable, newtable, basic, nobasic) {
+    let table = Array((qntR + qntV) + 1).fill(null).map(() => Array(14).fill(0));
+
+    // Tipo de Variavel, Valor Inicial, Básica(Sim ou Não)
+    for(y=0; y < qntV; y++){
+        table[y][0] = 'X'+(y+1);
+        
+        table[y][1] = 'Decisão';
+        
+        table[y][2] = 0;
+        
+        if(basic.includes(`X${y+1}`))
+            table[y][4] = 'Sim';
+        else
+            table[y][4] = 'Não';
+
+    }
+
+    // console.log(oldtable);
+    // console.log(newtable);
+
+    for(y=qntV; y < qntR+qntV; y++){
+        table[y][0] = 'F'+(y-1);
+        
+        table[y][1] = 'Folga';
+        
+        table[y][2] = oldtable[(qntR+qntV)-qntV][qntV+qntR];
+        
+        if(basic.includes(`F${y-1}`))
+            table[y][4] = 'Sim';
+        else
+            table[y][4] = 'Não';
+
+    }
+
+    console.log(table);
+}
+function verifyStop(matrix, qntV, qntR){
     for(i=0; i < qntV; i++) {
         if(matrix[qntR][i] < 0)
             return true
@@ -123,7 +160,7 @@ function verifyParade(matrix, qntV, qntR){
     return false
 }
 
-function simplex(matrix, qntV, qntR, base){
+function simplex(matrix, qntV, qntR, base, nobasic){
 
     div = [];
     vars = [];
@@ -156,6 +193,13 @@ function simplex(matrix, qntV, qntR, base){
     }  
     vars.push(base[outLine])
     
+    nobasic = nobasic.map((nb) => {
+        if (('X'+(enterLine+1)) == nb) {
+            return base[outLine];
+        } else
+            return nb;
+    });
+
     base[outLine] = 'X'+ (enterLine+1) 
     
     pivo = matrix[outLine][enterLine];
@@ -171,15 +215,14 @@ function simplex(matrix, qntV, qntR, base){
                 newMatrix[i][j] = newMatrix[outLine][j] * (valorDiv * -1) + matrix[i][j];
         }          
     }        
-    console.log(vars)
-    return [newMatrix, base, vars]
+    console.log(newMatrix, " Simplex");
+    return [newMatrix, base, vars, nobasic]
 }
 
-function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb, vars=[]){
+function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb, vars=[], nobasic=[]){
     
     rowElems = $(document).find('div.row.mt-5');
-    console.log(vars.length)
-    
+
     rowElems.append(`<div class="col-md-12 name-table"><h3>Tabela ${nameTb}</h3></div>
                     <div class="table-responsive">
                     <table class="table table-striped table-${cont}">
@@ -197,20 +240,28 @@ function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb, vars=[]){
     }
 
     if(nameTb == "Final")
-        var auxS = '<p> Solução Final::  ';
+        var auxS = '<p> Solução Final::   </p><p> Básicas-> ';
     else if(nameTb == "Inicial")
-        var auxS = '<p> Solução Inicial::  ';
+        var auxS = '<p> Solução Inicial::   </p><p> Básicas-> ';
     else 
-        var auxS = '<p>  ';
+        var auxS = '<p>   Básicas-> ';
     
     for(i =0; i < qntR; i++){
-        auxS += `| <b>${base[i]}</b> = ${table[i][qntR+qntV].toFixed(2)} `
+        auxS += `| <b>${base[i]}</b> = ${table[i][qntR+qntV].toFixed(2)} `;
     }
 
     if(maxMin == 1)
-        auxS += `| <b>Z</b> = ${table[qntR][qntR+qntV].toFixed(2)} | </p>`
+        auxS += `| <b>Z</b> = ${table[qntR][qntR+qntV].toFixed(2)} | </p>`;
     else
-        auxS += `| <b>Z</b> = ${(table[qntR][qntR+qntV].toFixed(2)) * -1} | </p>`
+        auxS += `| <b>Z</b> = ${(table[qntR][qntR+qntV].toFixed(2)) * -1} | </p>`;
+    
+    auxS += '<p> Não Básicas-> ';
+
+    for(let i = 0; i < nobasic.length; i++) {
+        auxS += `| <b>${nobasic[i]}</b>  = 0`;
+    }
+
+    auxS += '</p>';
     
     rowElems.append(auxS)
 
@@ -253,7 +304,51 @@ function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb, vars=[]){
         </div>`)
 
 }    
+
+function operational(qntV, qntR, maxMin, step) {
+    
+    let restrictions = [];
+    var cont = 0;
+    var tableBase = [] 
+    var nobasic = [];
+
+    let variables = $("input[name='x[]']").map(function(){return $(this).val();}).get();
+
+    for(i=0; i < qntR; i++) {        
+        res = $(`input[name='f[${i}]']`).map(function(){return $(this).val();}).get();
+        restrictions.push(res)
+        tableBase.push(`F${i+1}`)
+    }
+
+    const oldtable = makeMatrix(qntV, qntR, restrictions, variables, maxMin);
+    var tableSimplex = oldtable;         
+
+    rowElems = $(document).find('div.row.mt-5');
+    rowElems.text(``);
+
+    for (let i = 0; i < qntV; i++) {
+        nobasic.push(`X${i+1}`);
+    }
+
+    printSimplex(tableSimplex, qntV, qntR, tableBase, cont, maxMin, "Inicial", vars=[], nobasic); 
+    cont++;
+
+    while(verifyStop(tableSimplex, qntV, qntR)){
         
+        if(step){
+            if (cont != 1){                   
+                printSimplex(tableSimplex, qntV, qntR, tableBase, cont, maxMin, `${cont-1}`, vars, nobasic);   
+            }
+        } 
+                                        
+        [tableSimplex, tableBase, vars, nobasic] = simplex(tableSimplex, qntV, qntR, tableBase, nobasic)  
+        cont++;   
+    }
+    
+    printSimplex(tableSimplex, qntV, qntR, tableBase, cont, maxMin, "Final", vars, nobasic);          
+    
+    analyseSensibility(qntV, qntR, oldtable, newtable=tableSimplex, tableBase, nobasic);
+ }
 
 $('#form-simplex').submit(function (e) {
     e.preventDefault();
@@ -269,10 +364,10 @@ $('#form-simplex').submit(function (e) {
         return false;
 
     } else {
-        var tableBase = [] 
-        let formData = $('form#form-simplex').serializeArray();
+
         let quantidade = {};
-        let restrictions = []
+        let formData = $('form#form-simplex').serializeArray();
+        
 
         $.map(formData, function(n, i){
             quantidade[n['name']] = n['value'];
@@ -283,35 +378,7 @@ $('#form-simplex').submit(function (e) {
         maxMin = parseInt(quantidade.maxMin)
         step = parseInt(quantidade.step)
 
-        let variables = $("input[name='x[]']").map(function(){return $(this).val();}).get();
-
-        for(i=0; i < quantidade.qntR; i++) {        
-            res = $(`input[name='f[${i}]']`).map(function(){return $(this).val();}).get();
-            restrictions.push(res)
-            tableBase.push(`F${i+1}`)
-        }
-
-        var table = makeMatrix(qntV, qntR, restrictions, variables, maxMin)
-        var cont = 0;
-
-        rowElems = $(document).find('div.row.mt-5');
-        rowElems.text(``);
-
-        printSimplex(table, qntV, qntR, tableBase, cont, maxMin, "Inicial", vars=[]); 
-        cont++;
-        while(verifyParade(table, qntV, qntR)){
-            
-            if(step){
-                if (cont != 1){                   
-                    printSimplex(table, qntV, qntR, tableBase, cont, maxMin, `${cont-1}`, vars);   
-                }
-            } 
-                                           
-            [table, tableBase, vars] = simplex(table, qntV, qntR, tableBase)  
-            cont++;   
-        }
-        
-        printSimplex(table, qntV, qntR, tableBase, cont, maxMin, "Final", vars);             
+        operational(qntV, qntR, maxMin, step);
     }
 
 });
