@@ -3,6 +3,8 @@ Projeto de Pesquisa Operacional 5º Semestre BCC UNIVEM feita pelos alunos:
  - Julia Kimura Silva - Ra: 585890
  - Elton Haruji Tanaka - Ra: 577261
  
+ [Demo](https://simplexidade.herokuapp.com/) -> https://simplexidade.herokuapp.com/
+ 
 O Simplex é uma técnica utilizada para se determinar, numericamente, a solução ótima de um modelo de Programação Linear
 ## Ferramentas
 
