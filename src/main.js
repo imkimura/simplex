@@ -112,45 +112,194 @@ function makeMatrix(qntV, qntR, res, fo, maxMin) {
         matrix[i][qntR + qntV] = parseFloat(res[i][qntV].replace(',', '.'));
     }
 
-    console.log(matrix, " Matrix");
     return matrix
 }
-function analyseSensibility(qntV, qntR, oldtable, newtable, basic, nobasic) {
-    let table = Array((qntR + qntV) + 1).fill(null).map(() => Array(14).fill(0));
+function calcVarRestrictions(qntR, resF, fol) {
+    
+    let result = [];
 
+    for (let y = 0; y < qntR; y++) {
+   
+        aux = (resF[y] / fol[y]) * -1;
+        if (aux == -Infinity)
+            aux = "INF"
+   
+        result.push(aux);        
+    }
+
+    console.log(result);
+    
+    let max = min = Infinity;
+    result.map((n) => {
+        if (n < min)
+            min = n;
+    });
+
+    for (y = 0; y < qntR; y++) {
+        if (result[y] < max && result[y] > 0) {
+            max = result[y];
+        } 
+        if ((result[y] > min && result[y] < 0) || result[y] == min) {
+            min = result[y];
+        }
+    }
+
+    max = max == Infinity ? "INF" : max;
+    let variation = [max, (min * -1)];
+
+    return variation;
+}
+function analyseSensibility(qntV, qntR, oldtable, newtable, basic, cont) {
+    
+    let table = Array((qntR + qntV) + 1).fill(null).map(() => Array(14).fill(0));
+    
+    let resF = [];
+
+    for(y=0; y < qntR; y++){
+        resF.push(newtable[y][qntR+qntV]);        
+    }
+    
     // Tipo de Variavel, Valor Inicial, Básica(Sim ou Não)
-    for(y=0; y < qntV; y++){
+    for(let y = 0; y < qntV; y++){
+        
         table[y][0] = 'X'+(y+1);
         
         table[y][1] = 'Decisão';
         
         table[y][2] = 0;
         
-        if(basic.includes(`X${y+1}`))
+        if(basic.includes(`X${y+1}`)) {
+            
             table[y][4] = 'Sim';
-        else
-            table[y][4] = 'Não';
+            for(i=0; i < basic.length; i++) {
+                if(`X${y+1}` == basic[i]) {
+                    posV = i;
+                    break
+                }
+            }
+            table[y][3] = newtable[posV][qntR+qntV].toFixed(2);
 
+        } else {
+            table[y][3] = 0;
+            table[y][4] = 'Não';
+        }        
+
+        table[y][13] = table[y][12] = table[y][11] = table[y][10] = table[y][8] = table[y][7] = table[y][6] = table[y][5] = "-";
+
+        table[y][9] = newtable[qntR][y].toFixed(2);        
+       
     }
 
-    // console.log(oldtable);
-    // console.log(newtable);
+    for (let y = qntV; y < (qntR+qntV); y++) {
+        
+        let fol = [];
 
-    for(y=qntV; y < qntR+qntV; y++){
         table[y][0] = 'F'+(y-1);
         
         table[y][1] = 'Folga';
         
-        table[y][2] = oldtable[(qntR+qntV)-qntV][qntV+qntR];
+        table[y][2] = oldtable[y-qntV][qntV+qntR].toFixed(2);
         
-        if(basic.includes(`F${y-1}`))
+        if(basic.includes(`F${y-1}`)){
+            
             table[y][4] = 'Sim';
-        else
+            for(i=0; i < basic.length; i++) {
+                if(`F${y-1}` == basic[i]) {
+                    posR = i;
+                    break
+                }
+            }
+            table[y][3] = newtable[posR][qntR+qntV].toFixed(2);
+
+        } else {
+            table[y][3] = 0;
             table[y][4] = 'Não';
+        }
+        for(i=0; i < qntR; i++){
+            fol.push(newtable[i][y]);       
+        }
+        
+        table[y][5] = table[y][4] == 'Sim' ? 'Não' : 'Sim'; 
+        table[y][6] = table[y][4] == 'Sim' ? newtable[posR][qntR+qntV].toFixed(2) : 0; 
+        table[y][7] = table[y][4] == 'Sim' ? (oldtable[y-qntV][qntV+qntR] - newtable[posR][qntR+qntV]).toFixed(2) : oldtable[y-qntV][qntV+qntR].toFixed(2); 
+        table[y][8] = newtable[qntR][y].toFixed(2);
+        table[y][9] = '-'; 
+        
+        calcVariation = calcVarRestrictions(qntR, resF, fol);
+        
+        table[y][10] = calcVariation[0] == "INF" ? "INF" : calcVariation[0].toFixed(2); 
+        table[y][11] = (calcVariation[1]).toFixed(2); 
+        table[y][12] = calcVariation[0] == "INF" ? "INF" : (calcVariation[0] + oldtable[y-qntV][qntV+qntR]).toFixed(2)
+        table[y][13] = (oldtable[y-qntV][qntV+qntR] - calcVariation[1]).toFixed(2)
 
     }
 
-    console.log(table);
+    table[qntR+qntV][0] = "Lucro";
+    table[qntR+qntV][1] = "Função";
+    table[qntR+qntV][2] = 0;
+    table[qntR+qntV][3] = newtable[qntR][qntR+qntV].toFixed(2);
+    table[qntR+qntV][4] = "Sim";
+
+    for (y=5; y < 14; y++){        
+        table[qntR+qntV][y] = "-";
+    }
+
+    printAnalyse(table, qntV, qntR, cont);
+}
+function printAnalyse(table, qntV, qntR, cont) {
+
+    rowElems = $(document).find('div.row.mt-5');
+
+    rowElems.append(`<div class="col-md-12 name-table"><h3>Análise de Sensibilidade</h3></div>
+                    <div class="table-responsive">
+                    <table class="table table-striped table-${cont}">
+                     <thead class="thead-dark">
+                     </thead>
+                    <tbody>
+                    </tbody>
+                    </table>
+                    </div>
+                    <hr/>`);
+    
+    $(`table.table-striped.table-${cont} thead`).append(`
+                    <tr>
+                   </tr>`);
+   
+   $(`table.table-striped.table-${cont} thead tr`).append(`<th scope="col">Variável</th>
+                                                        <th scope="col">Tipo de Variável</th>
+                                                        <th scope="col">Valor Inicial</th>
+                                                        <th scope="col">Valor Final</th>
+                                                        <th scope="col">Básica (SIm e Não)</th>
+                                                        <th scope="col">Recurso Escasso</th>
+                                                        <th scope="col">Sobra Recurso</th>
+                                                        <th scope="col">Uso Recurso</th>
+                                                        <th scope="col">Preço Sombra</th>
+                                                        <th scope="col">Custo Reduzido</th>
+                                                        <th scope="col">Aumentar o parâmetro</th>
+                                                        <th scope="col">Reduzir o parâmetro</th>
+                                                        <th scope="col">Máximo</th>
+                                                        <th scope="col">Mínimo</th>`);
+
+
+   for(y=0; y < ( qntR + qntV + 1); y++) {
+       
+        $(`table.table-striped.table-${cont} tbody`).append(`<tr></tr>`);
+                
+       for(x = 0; x < 14; x++) {           
+                      
+           if (y == 0)
+                $(`table.table-striped.table-${cont} tbody tr`).append(`<td>${table[y][x]}</td>`);     
+            else
+                $(`table.table-striped.table-${cont} tbody tr:nth-child(${y+1})`).append(`<td>${table[y][x]}</td>`);   
+        }
+   }
+
+    rowElems.append(`
+       <div class="form-group col-12 text-center mt-4">
+           <a href="index.php" class="btn btn-dark col-6 col-sm-5" type="button">VOLTAR</a>
+       </div>`);
+
+
 }
 function verifyStop(matrix, qntV, qntR){
     for(i=0; i < qntV; i++) {
@@ -215,7 +364,7 @@ function simplex(matrix, qntV, qntR, base, nobasic){
                 newMatrix[i][j] = newMatrix[outLine][j] * (valorDiv * -1) + matrix[i][j];
         }          
     }        
-    console.log(newMatrix, " Simplex");
+
     return [newMatrix, base, vars, nobasic]
 }
 
@@ -297,12 +446,6 @@ function printSimplex(table, qntV, qntR, base, cont, maxMin, nameTb, vars=[], no
         for(x=0; x < ((qntR + qntV) + 1); x++)
             $(`table.table-striped.table-${cont} tbody tr:nth-child(${y+1})`).append(`<td>${(table[y][x]).toFixed(2)}</td>`);   
     }
-    if(nameTb == "Final")
-        rowElems.append(`
-        <div class="form-group col-12 text-center mt-4">
-            <a href="index.php" class="btn btn-dark col-6 col-sm-5" type="button">VOLTAR</a>
-        </div>`)
-
 }    
 
 function operational(qntV, qntR, maxMin, step) {
@@ -321,7 +464,7 @@ function operational(qntV, qntR, maxMin, step) {
     }
 
     const oldtable = makeMatrix(qntV, qntR, restrictions, variables, maxMin);
-    var tableSimplex = oldtable;         
+    var tableSimplex = JSON.parse(JSON.stringify(oldtable));   
 
     rowElems = $(document).find('div.row.mt-5');
     rowElems.text(``);
@@ -346,8 +489,9 @@ function operational(qntV, qntR, maxMin, step) {
     }
     
     printSimplex(tableSimplex, qntV, qntR, tableBase, cont, maxMin, "Final", vars, nobasic);          
-    
-    analyseSensibility(qntV, qntR, oldtable, newtable=tableSimplex, tableBase, nobasic);
+    cont++;  
+
+    analyseSensibility(qntV, qntR, oldtable, newtable=tableSimplex, tableBase, cont);
  }
 
 $('#form-simplex').submit(function (e) {
@@ -380,5 +524,4 @@ $('#form-simplex').submit(function (e) {
 
         operational(qntV, qntR, maxMin, step);
     }
-
 });
